@@ -1,0 +1,4 @@
+Bundle-Name: my-submissions-web
+Bundle-SymbolicName: com.rge.forms.workflow.submissions
+Bundle-Version: 1.0.0
+Export-Package: com.rge.forms.workflow.submissions.constants
