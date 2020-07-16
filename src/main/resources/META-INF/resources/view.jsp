@@ -1,121 +1,159 @@
-<%@ include file="/init.jsp" %>
+<%@ include file="/init.jsp"%>
 
+<script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
 
-<%@ taglib uri="http://liferay.com/tld/asset" prefix="liferay-asset" %><%@
-taglib uri="http://liferay.com/tld/comment" prefix="liferay-comment" %><%@
-taglib uri="http://liferay.com/tld/frontend" prefix="liferay-frontend" %><%@
-taglib uri="http://liferay.com/tld/theme" prefix="liferay-theme" %>
+<link href="https://cdn.datatables.net/1.10.9/css/jquery.dataTables.css"
+	rel="stylesheet" type="text/css" />
+<script src="https://cdn.datatables.net/1.10.9/js/jquery.dataTables.js"></script>
 
-<%@ page import="com.liferay.asset.kernel.AssetRendererFactoryRegistryUtil" %><%@
-page import="com.liferay.asset.kernel.model.AssetEntry" %><%@
-page import="com.liferay.asset.kernel.model.AssetRenderer" %><%@
-page import="com.liferay.asset.kernel.model.AssetRendererFactory" %><%@
-page import="com.liferay.petra.string.StringPool" %><%@
-page import="com.liferay.portal.kernel.util.HtmlUtil" %><%@
-page import="com.liferay.portal.kernel.util.StringUtil" %><%@
-page import="com.liferay.portal.kernel.util.WebKeys" %><%@
-page import="com.liferay.portal.kernel.workflow.WorkflowException" %><%@
-page import="com.liferay.portal.kernel.workflow.WorkflowInstance" %><%@
-page import="com.liferay.portal.kernel.workflow.WorkflowLog" %>
-
-
-
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-
-<%@ taglib uri="http://java.sun.com/portlet_2_0" prefix="portlet" %>
-
-<%@ taglib uri="http://liferay.com/tld/aui" prefix="aui" %><%@
-taglib uri="http://liferay.com/tld/clay" prefix="clay" %><%@
-taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %><%@
-taglib uri="http://liferay.com/tld/util" prefix="liferay-util" %>
-
-<%@ page import="com.liferay.portal.kernel.util.ParamUtil" %><%@
-page import="com.liferay.portal.workflow.constants.WorkflowWebKeys" %><%@
-page import="com.liferay.portal.workflow.portlet.tab.WorkflowPortletTab" %><%@
-page import="com.liferay.taglib.servlet.PipingServletResponse" %>
-
-<%@ page import="java.util.List" %>
-
-<%@ page import="javax.portlet.PortletURL" %>
-
-
-<%!
-List<WorkflowDTO> workflowDTOList=new ArrayList<>();
-%>
-<%
-if(renderRequest.getAttribute("workflowDTOList")!=null){
-
-	workflowDTOList=(List<WorkflowDTO>) renderRequest.getAttribute("workflowDTOList");
+<style>  
+tfoot {
+    display: table-header-group;
 }
-%>
+</style>
 
-<div class="form">
-	<liferay-ui:input-search
-		markupView="lexicon"
-	/>
-</div>
-
-<liferay-ui:search-container delta="5" emptyResultsMessage="No records available" >
-    <liferay-ui:search-container-results  results="<%= ListUtil.subList(workflowDTOList, searchContainer.getStart(), searchContainer.getEnd()) %>" />
-    <liferay-ui:search-container-row className="com.rge.forms.workflow.submissions.dto.WorkflowDTO" keyProperty="id" modelVar="workflowDTO" >
-    
-    <portlet:renderURL var="rowURL">
-			<portlet:param name="mvcPath" value="/view_content.jsp" />
-			<portlet:param name="assetEntryId" value="${workflowDTO.assetEntryId}" />
-			<portlet:param name="assetRendererType" value="${workflowDTO.assetRendererType}" />
-			<portlet:param name="assetEntryVersionId" value="${workflowDTO.assetEntryVersionId}" />
-			<portlet:param name="entryClassName" value="${workflowDTO.entryClassName}" />
-			<portlet:param name="redirect" value="<%=currentURL%>" />
-		</portlet:renderURL>
-		
-       <liferay-ui:search-container-column-text name="Asset Title" value="${workflowDTO.assetTitle}" href="<%= rowURL %>" />
-        <liferay-ui:search-container-column-text name="Asset Type" value="${workflowDTO.assetType}" href="<%= rowURL %>" />
-        <liferay-ui:search-container-column-text name="Status" value="${workflowDTO.status}" href="<%= rowURL %>" />
-        <liferay-ui:search-container-column-text name="Definition" value="${workflowDTO.definition}" href="<%= rowURL %>" />
-        <liferay-ui:search-container-column-text name="Last Activity Date" value="${workflowDTO.lastActivityDate}" href="<%= rowURL %>" />
-        <liferay-ui:search-container-column-text name="End Date" value="${workflowDTO.endDate}" href="<%= rowURL %>" />
-    </liferay-ui:search-container-row>
-    <liferay-ui:search-iterator />
-</liferay-ui:search-container>
-
-
-
+<%!List<WorkflowDTO> workflowDTOList = new ArrayList<>();%>
 <%
-String randomId = StringUtil.randomId();
+	if (renderRequest.getAttribute("workflowDTOList") != null) {
 
-
+		workflowDTOList = (List<WorkflowDTO>) renderRequest.getAttribute("workflowDTOList");
+	}
 %>
+
+
+
+<table id="mySubmissionsTable" class="display" cellspacing="0"
+	width="100%">
+
+<tfoot>
+		<tr>
+			<th> </th>
+			<th>Filter by status :</th>
+			<th> </th>
+			<th> </th>
+			<th> </th>
+			<th> </th>
+		</tr>
+	</tfoot>
+	<thead>
+		<tr>
+			<th>Asset Title</th>
+			<th>Asset Type</th>
+			<th>Status</th>
+			<th>Definition</th>
+			<th>Last Activity Date</th>
+			<th>End Date</th>
+		</tr>
+	</thead>
+	
+	<tbody>
+		<c:forEach var="workflowDTO" items="${workflowDTOList}">
+
+			<portlet:renderURL var="rowURL">
+				<portlet:param name="mvcPath" value="/view_content.jsp" />
+				<portlet:param name="assetEntryId"
+					value="${workflowDTO.assetEntryId}" />
+				<portlet:param name="assetRendererType"
+					value="${workflowDTO.assetRendererType}" />
+				<portlet:param name="assetEntryVersionId"
+					value="${workflowDTO.assetEntryVersionId}" />
+				<portlet:param name="entryClassName"
+					value="${workflowDTO.entryClassName}" />
+				<portlet:param name="redirect" value="<%=currentURL%>" />
+			</portlet:renderURL>
+
+			<tr data-href="<%=rowURL%>">
+				<td>${workflowDTO.assetTitle}</td>
+				<td>${workflowDTO.assetType}</td>
+				<td>${workflowDTO.status}</td>
+				<td>${workflowDTO.definition}</td>
+				<td>${workflowDTO.lastActivityDate}</td>
+				<td>${workflowDTO.endDate}</td>
+			</tr>
+		</c:forEach>
+
+	</tbody>
+</table>
+
+<script>
+	$(document).ready(function() {
+		var table = 	$('#mySubmissionsTable').dataTable({
+			"columnDefs" : [ {
+				"targets" : [ 0 ],
+				"visible" : true,
+				"searchable" : true
+			}],
+			initComplete: function () {
+	            this.api().columns(2).every( function () {
+	                var column = this;
+	                var select = $('<select><option value=""></option></select>')
+	                    .appendTo( $(column.footer()).empty() )
+	                    .on( 'change', function () {
+	                        var val = $.fn.dataTable.util.escapeRegex(
+	                            $(this).val()
+	                        );
+
+	                        column
+	                            .search( val ? '^'+val+'$' : '', true, false )
+	                            .draw();
+	                    } );
+
+	                column.data().unique().sort().each( function ( d, j ) {
+	                    select.append( '<option value="'+d+'">'+d+'</option>' )
+	                } );
+	            } );
+	        }
+		});
+		} );
+
+	$(document).ready(function() {
+		$(document.body).on("click", "tr[data-href]", function() {
+			window.location.href = this.dataset.href;
+		});
+	});
+	
+	$(document).ready(function () {
+	    $("#mySubmissionsTable tr").css('cursor', 'pointer');
+	});
+
+	
+</script>
+
+
+
+
+
+
 
 
 
 <!-- TODO -->
-<% if (true == false){ %>
-<liferay-ui:icon-menu
-	cssClass="lfr-asset-actions"
-	direction="left-side"
-	icon="<%= StringPool.BLANK %>"
-	markupView="lexicon"
-	message="<%= StringPool.BLANK %>"
-	showWhenSingleIcon="<%= true %>"
->
+<%
+	if (true == false) {
+%>
+<liferay-ui:icon-menu cssClass="lfr-asset-actions" direction="left-side"
+	icon="<%=StringPool.BLANK%>" markupView="lexicon"
+	message="<%=StringPool.BLANK%>" showWhenSingleIcon="<%=true%>">
 
 
-		<portlet:renderURL var="redirectURL">
-			<portlet:param name="mvcPath" value="/view.jsp" />
-			<portlet:param name="tab" value="<%= WorkflowWebKeys.WORKFLOW_TAB_INSTANCE %>" />
-		</portlet:renderURL>
+	<portlet:renderURL var="redirectURL">
+		<portlet:param name="mvcPath" value="/view.jsp" />
+		<portlet:param name="tab"
+			value="<%=WorkflowWebKeys.WORKFLOW_TAB_INSTANCE%>" />
+	</portlet:renderURL>
 
-		<portlet:actionURL name="deleteWorkflowInstance" var="deleteURL">
-			<portlet:param name="redirect" value="<%= redirectURL %>" />
-			<portlet:param name="companyId" value="${workflowDTO.companyId}" />
-			<portlet:param name="groupId" value="${workflowDTO.groupId}" />
-			<portlet:param name="entryClassName" value="${workflowDTO.entryClassName}" />
-			<portlet:param name="entryClassPK" value="${workflowDTO.assetEntryVersionId}" />
-		</portlet:actionURL>
+	<portlet:actionURL name="deleteWorkflowInstance" var="deleteURL">
+		<portlet:param name="redirect" value="<%=redirectURL%>" />
+		<portlet:param name="companyId" value="${workflowDTO.companyId}" />
+		<portlet:param name="groupId" value="${workflowDTO.groupId}" />
+		<portlet:param name="entryClassName"
+			value="${workflowDTO.entryClassName}" />
+		<portlet:param name="entryClassPK"
+			value="${workflowDTO.assetEntryVersionId}" />
+	</portlet:actionURL>
 
-		<liferay-ui:icon
-			message="withdraw-submission"
-			url="<%= deleteURL %>"
-		/>
+	<liferay-ui:icon message="withdraw-submission" url="<%=deleteURL%>" />
 </liferay-ui:icon-menu>
-<% }%>
+<%
+	}
+%>
